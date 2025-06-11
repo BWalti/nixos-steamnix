@@ -14,17 +14,21 @@
   nixpkgs.config.allowUnfree         = true;
 
   # kernel hack for Thunderbolt
-  boot.kernelParams = [ "thunderbolt.host_reset=false"  ];
+  boot.kernelParams = [
+    "thunderbolt.host_reset=false"
+    "iommu=pt"
+    "amdgpu.runpm=0"
+  ];
   # boot.extraModulePackages = with config.boot.kernelPackages; [ amdgpu ];
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;
-    driSupport32Bit = true;
+    enable32Bit = true;
+   
+    # extraPackages = with pkgs; [
+    #    mesa.opencl       # for OpenCL support on AMD
+    #    amdvlk            # optional: AMD fix for some Vulkan cases
+    #  ];
   };
-  
-#  hardware.graphics.extraPackages = with pkgs; [
-#    mesa.opencl       # for OpenCL support on AMD
-#    amdvlk            # optional: AMD fix for some Vulkan cases
-#  ];
 
   # use AMD GPU
   boot.initrd.kernelModules = [ "amdgpu" ];
