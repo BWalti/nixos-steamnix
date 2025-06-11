@@ -10,11 +10,30 @@
       ./hardware-configuration.nix
     ];
 
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nixpkgs.config.allowUnfree         = true;
+
+  # use AMD GPU
+  boot.initrd.kernelModules = [ "amdgpu" ];
+
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.timeout                  = 0;
+  boot.loader.limine.maxGenerations    = 5;
+  hardware.amdgpu.initrd.enable = true;
 
-  # networking.hostName = "nixos"; # Define your hostname.
+  boot.kernelParams = [ "quiet" ];
+  boot.kernelPackages = pkgs.linuxPackages_cachyos;
+  boot.kernel.sysctl = {
+    "kernel.split_lock_mitigate" = 0;
+    "kernel.nmi_watchdog"        = 0;
+    "kernel.sched_bore"          = "1";
+  };
+
+  boot.plymouth.enable     = true;
+
+  networking.hostName = "nixos"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
@@ -117,6 +136,121 @@
   #
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
   system.stateVersion = "25.05"; # Did you read the comment?
+
+
+  ################
+  # FileSystems  #
+  ################
+  fileSystems."/" = {
+    options = [ "compress=zstd" ];
+  };
+
+  ############
+  # Network  #
+  ############
+  networking = {
+    firewall.enable       = false;
+  };
+
+  #################
+  # Bluetooth     #
+  #################
+  hardware.bluetooth.enable = true;
+  hardware.bluetooth.settings = {
+    General = {
+      MultiProfile     = "multiple";
+      FastConnectable  = true;
+    };
+  };
+
+
+  #################
+  # Sound & RTKit #
+  #################
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable         = true;
+    alsa.enable    = true;
+    alsa.support32Bit = true;
+    pulse.enable   = true;
+  };
+
+  ########################
+  # Graphical & Greetd   #
+  ########################
+ 
+  services.xserver.enable            = false;
+  services.getty.autologinUser       = "steamos";
+  services.greetd = {
+    enable   = true;
+    settings.default_session = {
+      user    = "steamos";
+      command = "steam-gamescope > /dev/null 2>&1";
+    };
+  };
+
+
+  ########################
+  # Programs & Gaming    #
+  ########################
+  services.flatpak.enable = true;
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  # xdg.portal.config.common.default = "*";
+  xdg.portal.config.common.default = "gtk";
+  
+  programs.steam.gamescopeSession.args = ["-w 1920" "-h 1080" "-r 120" "--xwayland-count 2" "-e" "--hdr-enabled" "--mangoapp" ];
+  
+  programs = {
+    appimage = { enable = true; binfmt = true; };
+    fish     = { enable = true; };
+    mosh     = { enable = true; };
+    tmux     = { enable = true; };
+    gamescope.capSysNice  = true;
+    steam = {
+      enable                = true;
+      gamescopeSession.enable = true;
+      extraCompatPackages   = with pkgs; [ proton-ge-bin ];
+      extraPackages         = with pkgs; [
+        mangohud
+        gamescope-wsi
+      ];
+    };
+  };
+
+  environment.sessionVariables = {
+    PROTON_USE_NTSYNC       = "1";
+    ENABLE_HDR_WSI          = "1";
+    DXVK_HDR                = "1";
+    PROTON_ENABLE_AMD_AGS   = "1";
+    PROTON_ENABLE_NVAPI     = "1";
+    ENABLE_GAMESCOPE_WSI    = "1";
+    STEAM_MULTIPLE_XWAYLANDS = "1";
+  };
+
+  ###################
+  # Virtualization  #
+  ###################
+  virtualisation.docker.enable      = true;
+  virtualisation.docker.enableOnBoot = false;
+  virtualisation.libvirtd.enable = true;
+
+  ###############
+  # Users       #
+  ###############
+  users.users.steamos = {
+    isNormalUser = true;
+    description  = "SteamOS user";
+    extraGroups  = [ "networkmanager" "wheel" "docker" "video" "seat" "audio" "libvirtd" ];
+    password     = "steamos";
+  };
+
+  #################
+  # Security      #
+  #################
+  security.sudo.wheelNeedsPassword = false;
+  security.polkit.enable           = true;
+  services.seatd.enable            = true;
 
 }
 

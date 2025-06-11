@@ -1,23 +1,22 @@
-            {
+
+# flake.nix
+{
+  description = "My configuration";
+
   inputs = {
-    # This is pointing to an unstable release.
-    # If you prefer a stable release instead, you can this to the latest number shown here: https://nixos.org/download
-    # i.e. nixos-24.11
-    # Use `nix flake update` to update the flake to the latest revision of the chosen release channel.
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable"; # IMPORTANT
   };
-  outputs = inputs@{ self, nixpkgs, ... }: {
-    # NOTE: 'nixos' is the default hostname
-    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [ 
-	./configuration.nix 
-        {
- 	  nix = {
-	    settings.experimental-features = [ "nix-command" "flakes" ];
-	  };
-        }
-      ];
+
+  outputs = { nixpkgs, chaotic, ... }: {
+    nixosConfigurations = {
+      nixos = nixpkgs.lib.nixosSystem { # Replace "hostname" with your system's hostname
+        system = "x86_64-linux";
+        modules = [
+          ./configuration.nix
+          chaotic.nixosModules.default # IMPORTANT
+        ];
+      };
     };
   };
 }
