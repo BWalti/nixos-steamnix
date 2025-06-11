@@ -24,12 +24,12 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
-   
-    # extraPackages = with pkgs; [
-    #    mesa.opencl       # for OpenCL support on AMD
-    #    amdvlk            # optional: AMD fix for some Vulkan cases
-    #  ];
   };
+
+  #hardware.amdgpu.amdvlk = {
+  #  enable = true;
+  #  support32Bit.enable = true;
+  #};
 
   # use AMD GPU
   boot.initrd.kernelModules = [ "amdgpu" ];
@@ -226,9 +226,16 @@
     fish     = { enable = true; };
     mosh     = { enable = true; };
     tmux     = { enable = true; };
+
+    gamescope.enable = true;
     gamescope.capSysNice  = true;
+
     steam = {
       enable                = true;
+      remotePlay.openFirewall = true;
+      dedicatedServer.openFirewall = true;
+      localNetworkGameTransfers.openFirewall = true;
+
       gamescopeSession.enable = true;
       extraCompatPackages   = with pkgs; [ proton-ge-bin ];
       extraPackages         = with pkgs; [
