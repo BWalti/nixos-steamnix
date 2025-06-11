@@ -10,7 +10,7 @@
 
   outputs = { nixpkgs, chaotic, ... }: {
     nixosConfigurations = {
-      nixos = nixpkgs.lib.nixosSystem { # Replace "hostname" with your system's hostname
+      gtr7pro01 = nixpkgs.lib.nixosSystem { # Replace "hostname" with your system's hostname
         system = "x86_64-linux";
         modules = [
           ./configuration.nix

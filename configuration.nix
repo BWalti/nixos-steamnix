@@ -13,6 +13,19 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree         = true;
 
+  # kernel hack for Thunderbolt
+  boot.kernelParams = [ "thunderbolt.host_reset=false"  ];
+  # boot.extraModulePackages = with config.boot.kernelPackages; [ amdgpu ];
+  hardware.opengl = {
+    enable = true;
+    driSupport32Bit = true;
+  };
+  
+#  hardware.graphics.extraPackages = with pkgs; [
+#    mesa.opencl       # for OpenCL support on AMD
+#    amdvlk            # optional: AMD fix for some Vulkan cases
+#  ];
+
   # use AMD GPU
   boot.initrd.kernelModules = [ "amdgpu" ];
 
@@ -23,7 +36,6 @@
   boot.loader.limine.maxGenerations    = 5;
   hardware.amdgpu.initrd.enable = true;
 
-  boot.kernelParams = [ "quiet" ];
   boot.kernelPackages = pkgs.linuxPackages_cachyos;
   boot.kernel.sysctl = {
     "kernel.split_lock_mitigate" = 0;
@@ -33,7 +45,7 @@
 
   boot.plymouth.enable     = true;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "gtr7pro01"; # Define your hostname.
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
@@ -92,7 +104,9 @@
   #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #   wget
     git
+    lact
   ];
+
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -153,6 +167,11 @@
   };
 
   #################
+  # Thunderbolt   #
+  #################
+  services.hardware.bolt.enable = true;
+
+  #################
   # Bluetooth     #
   #################
   hardware.bluetooth.enable = true;
@@ -162,7 +181,6 @@
       FastConnectable  = true;
     };
   };
-
 
   #################
   # Sound & RTKit #
@@ -178,7 +196,6 @@
   ########################
   # Graphical & Greetd   #
   ########################
- 
   services.xserver.enable            = false;
   services.getty.autologinUser       = "steamos";
   services.greetd = {
@@ -189,14 +206,12 @@
     };
   };
 
-
   ########################
   # Programs & Gaming    #
   ########################
   services.flatpak.enable = true;
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-  # xdg.portal.config.common.default = "*";
   xdg.portal.config.common.default = "gtk";
   
   programs.steam.gamescopeSession.args = ["-w 1920" "-h 1080" "-r 120" "--xwayland-count 2" "-e" "--hdr-enabled" "--mangoapp" ];
@@ -252,5 +267,28 @@
   security.polkit.enable           = true;
   services.seatd.enable            = true;
 
+  #################
+  # HIP           #
+  #################
+  systemd.tmpfiles.rules = 
+  let
+    rocmEnv = pkgs.symlinkJoin {
+      name = "rocm-combined";
+      paths = with pkgs.rocmPackages; [
+        rocblas
+        hipblas
+        clr
+      ];
+    };
+  in [
+    "L+    /opt/rocm   -    -    -     -    ${rocmEnv}"
+  ];
+
+  #################
+  # LACT          #
+  # Linux AMD GPU controller #
+  #################
+  systemd.packages = with pkgs; [ lact ];
+  systemd.services.lactd.wantedBy = ["multi-user.target"];
 }
 
