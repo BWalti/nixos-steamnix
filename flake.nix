@@ -10,7 +10,14 @@
     # NOTE: 'nixos' is the default hostname
     nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      modules = [ ./configuration.nix ];
+      modules = [ 
+	./configuration.nix 
+        {
+ 	  nix = {
+	    settings.experimental-features = [ "nix-command" "flakes" ];
+	  };
+        }
+      ];
     };
   };
 }
