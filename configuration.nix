@@ -18,6 +18,7 @@
     "thunderbolt.host_reset=false"
     "iommu=pt"
     "amdgpu.runpm=0"
+    "amdgpu.ppfeaturemask=0xffffffff"
   ];
   # boot.extraModulePackages = with config.boot.kernelPackages; [ amdgpu ];
   hardware.graphics = {
