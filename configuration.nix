@@ -106,6 +106,16 @@
 
     # Steam related
     mangohud
+
+    # Curated list of desktop utilities
+    kdePackages.konsole                # Terminal emulator
+    kdePackages.dolphin                # File manager
+    kdePackages.plasma-nm  # WiFi management applet (requires NetworkManager)
+    kdePackages.spectacle              # Screenshot tool
+    kdePackages.ark                    # Archive manager
+    kdePackages.systemsettings         # System settings GUI
+    kdePackages.plasma-browser-integration
+    kdePackages.plasma-nm
   ];
 
   # Enable the OpenSSH daemon.
@@ -166,14 +176,16 @@
   # Graphical & Greetd   #
   ########################
   services.xserver.enable            = false;
-  services.getty.autologinUser       = "steamos";
-  services.greetd = {
-    enable   = true;
-    settings.default_session = {
-      user    = "steamos";
-      command = "steam-gamescope > /dev/null 2>&1";
-    };
-  };
+  # services.getty.autologinUser       = "steamos";
+  #services.greetd = {
+  #  enable   = true;
+  #  settings.default_session = {
+  #    user    = "steamos";
+  #    command = "steam-gamescope > /dev/null 2>&1";
+  #  };
+  #};
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "steamos";
 
   ########################
   # Programs & Gaming    #
